@@ -106,7 +106,7 @@ GROUP BY user_id;
 
 
 
--- Oracle SQL & PostgreSQL
+-- Oracle SQL
 WITH Signup_Confirmations AS (
     SELECT s.user_id, c.action, 
         CASE WHEN c.action = 'confirmed' THEN 1
@@ -121,6 +121,27 @@ SELECT
     user_id, 
     CASE WHEN COUNT(action) = 0 THEN 0
     ELSE ROUND((SUM(is_confirmed)/COUNT(action)), 2) 
+    END AS confirmation_rate
+FROM Signup_Confirmations
+GROUP BY user_id;
+
+
+
+-- PostgreSQL
+WITH Signup_Confirmations AS (
+    SELECT s.user_id, c.action, 
+        CASE WHEN c.action = 'confirmed' THEN 1
+        WHEN c.action = 'timeout' THEN 0
+        WHEN c.action IS NULL THEN 0
+        ELSE 0 END AS is_confirmed
+    FROM Signups s
+    LEFT JOIN Confirmations c ON s.user_id = c.user_id
+)
+
+SELECT 
+    user_id, 
+    CASE WHEN COUNT(action) = 0 THEN 0
+    ELSE ROUND((SUM(is_confirmed::numeric)/COUNT(action)), 2) 
     END AS confirmation_rate
 FROM Signup_Confirmations
 GROUP BY user_id;
